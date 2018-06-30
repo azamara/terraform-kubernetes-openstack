@@ -81,6 +81,5 @@ variable "hyperkube_version" {
 }
 
 variable "generate_ssl" {
-  descripion = "set to 1 to regenerate SSL certificates/keys"
   default = 1
 }
