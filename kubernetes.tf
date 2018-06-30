@@ -55,7 +55,7 @@ resource "openstack_compute_keypair_v2" "kubernetes" {
   public_key = "${file(var.public_key_path)}"
 }
 
-resource "openstack_compute_instance_v2" "controller" {
+resource "openstack_compute_floatingip_associate_v2" "controller" {
     name = "${var.cluster_name}-controller${count.index}"
     count = "1"
     image_name = "${var.kubernetes_image}"
@@ -126,7 +126,7 @@ resource "openstack_compute_instance_v2" "controller" {
     ]
 }
 
-resource "openstack_compute_instance_v2" "compute" {
+resource "openstack_compute_floatingip_associate_v2" "compute" {
     name = "${var.cluster_name}-compute${count.index}"
     count = "${var.compute_count}"
     image_name = "${var.kubernetes_image}"
@@ -207,8 +207,8 @@ resource "null_resource" "controller" {
         }
     }
     depends_on = [
-        "openstack_compute_instance_v2.controller",
-        "openstack_compute_instance_v2.compute",
+        "openstack_compute_floatingip_associate_v2.controller",
+        "openstack_compute_floatingip_associate_v2.compute",
     ]
 }
 
