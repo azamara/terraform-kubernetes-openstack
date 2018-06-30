@@ -34,7 +34,7 @@ resource "template_file" "compute_cloud_init" {
     vars {
         flannel_network = "${var.flannel_network}"
         flannel_backend = "${var.flannel_backend}"
-        etcd_servers = "${join(",", "${formatlist("http://%s:2379", openstack_compute_instance_v2.controller.*.network.0.fixed_ip_v4)}")}"
+        etcd_servers = "${join(",", "${formatlist("http://%s:2379", openstack_compute_floatingip_associate_v2.controller.*.network.0.fixed_ip_v4)}")}"
         cluster_token = "${var.cluster_name}"
         discovery_url = "${template_file.discovery_url.rendered}"
     }
@@ -165,7 +165,7 @@ resource "openstack_compute_floatingip_associate_v2" "compute" {
             "sudo mv ca.pem /etc/kubernetes/ssl",
             "sudo chown root:core /etc/kubernetes/ssl/*; sudo chmod 0640 /etc/kubernetes/ssl/*-key.pem",
             "sed -i 's/MY_IP/${self.network.0.fixed_ip_v4}/' /tmp/stage/*/*",
-            "sed -i 's/ADVERTISE_IP/${element(openstack_networking_floatingip_v2.compute.*.address, count.index)}/' /tmp/stage/*/*",
+            "sed -i 's/ADVERTISE_IP/${element(openstack_compute_floatingip_associate_v2.compute.*.address, count.index)}/' /tmp/stage/*/*",
             "sed -i 's/CONTROLLER_HOST/${openstack_compute_instance_v2.controller.0.network.0.fixed_ip_v4}/' /tmp/stage/*/*",
             "sed -i 's|PORTAL_NET|${var.portal_net}|' /tmp/stage/*/*",
             "sed -i 's|CLUSTER_DNS|${cidrhost(var.portal_net, 200)}|' /tmp/stage/*/*",
@@ -185,7 +185,7 @@ resource "openstack_compute_floatingip_associate_v2" "compute" {
     }
     depends_on = [
         "template_file.compute_cloud_init",
-        "openstack_compute_instance_v2.controller"
+        "openstack_compute_floatingip_associate_v2.controller"
     ]
 }
 
@@ -193,7 +193,7 @@ resource "null_resource" "controller" {
    provisioner "remote-exec" {
         inline = [
             "/opt/bin/kubectl config set-cluster ${var.cluster_name} --certificate-authority=/etc/kubernetes/ssl/ca.pem \\",
-            "  --server=https://${openstack_compute_instance_v2.controller.0.network.0.fixed_ip_v4}:443",
+            "  --server=https://${openstack_compute_floatingip_associate_v2.controller.0.network.0.fixed_ip_v4}:443",
             "/opt/bin/kubectl config set-credentials ${var.kubernetes_user} \\",
             "  --certificate-authority=/etc/kubernetes/ssl/ca.pem \\",
             "  --client-key=/etc/kubernetes/ssl/admin-key.pem \\",
