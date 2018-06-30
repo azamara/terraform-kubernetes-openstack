@@ -166,7 +166,7 @@ resource "openstack_compute_floatingip_associate_v2" "compute" {
             "sudo chown root:core /etc/kubernetes/ssl/*; sudo chmod 0640 /etc/kubernetes/ssl/*-key.pem",
             "sed -i 's/MY_IP/${self.network.0.fixed_ip_v4}/' /tmp/stage/*/*",
             "sed -i 's/ADVERTISE_IP/${element(openstack_compute_floatingip_associate_v2.compute.*.address, count.index)}/' /tmp/stage/*/*",
-            "sed -i 's/CONTROLLER_HOST/${openstack_compute_instance_v2.controller.0.network.0.fixed_ip_v4}/' /tmp/stage/*/*",
+            "sed -i 's/CONTROLLER_HOST/${openstack_compute_floatingip_associate_v2.controller.0.network.0.fixed_ip_v4}/' /tmp/stage/*/*",
             "sed -i 's|PORTAL_NET|${var.portal_net}|' /tmp/stage/*/*",
             "sed -i 's|CLUSTER_DNS|${cidrhost(var.portal_net, 200)}|' /tmp/stage/*/*",
             "sudo mkdir -p /etc/kubernetes/manifests",
